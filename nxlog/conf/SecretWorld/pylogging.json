@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "formatters": {
+    "simpleFormatter": {
+      "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    }
+  },
+  "handlers": {
+    "fileHandler": {
+      "class": "logging.FileHandler",
+      "formatter": "simpleFormatter",
+      "filename": "C:\\ProgramData\\nxlog\\pylog.txt"
+    }
+  },
+  "loggers": {
+    "nxlog.vg-tsw.elasticsearch": {"propagate": true},
+    "nxlog.vg-tsw.couchdb": {"propagate": true},
+    "nxlog.vg-tsw.parse": {"propagate": true},
+    "nxlog.vg-tsw": {"propagate": true}
+  },
+  "root": {
+    "handlers": ["fileHandler"],
+    "level": "WARNING"
+  }
+}

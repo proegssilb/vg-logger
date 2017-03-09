@@ -1,0 +1,1398 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<patterndb>
+    <created>2010-01-01 01:02:03</created>
+    <version>42</version>
+
+    <group>
+        <name>tswCombat</name>
+        <id>50284624</id>
+        <matchfield>
+            <name>SourceModuleName</name>
+            <type>exact</type>
+            <value>vg_tsw_combat</value>
+        </matchfield>
+
+        <pattern>
+            <id>1000</id>
+            <name>basic combat swing</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [00:00:28] (Critical) Solomon County Cop's Spray and Pray hits (Normal) Ravenous Horde for 522 physical damage. (Normal) -->
+                <value>^\[([^\]]+)\] ((?:\(Critical\) |\(Normal\) )?)(?!Thor's Hammer|Nightmare's Edge|Miner's Claw|Gaia's Presence|Carter's Burning|Angel's Touch|Adam's Rib|Dream's End|Stone's Throw|Mjolnir's Echo|Shadow's Shadow|The Carver's Art|Dragon's Breath|The Inspector's Gadget|Protector's Wrath|Keziah Mason's Ring)(.+?'s|Your) (.+?) hits \((Normal|Glancing)\) (.*?) for (\d+) (physical|magical|filth) damage. \((Normal|Penetrated|Blocked)\)</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>CriticalHit</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>Glancing</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damagetype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>BlockOrPen</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Swing</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>1</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($attackername == "Your") $attackername = $PlayerName;
+                if ($victimname == "you") $victimname = $PlayerName;
+                if ($attackername =~ /(.*)'s/) $attackername = $1;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1001</id>
+            <name>combat logging started</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:05:51] Logging started -->
+                <value>^\[([^\]]+)\] Logging started</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>CombatLoggingStarted</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                drop();
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1002</id>
+            <name>You start attack</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:06:11] You start using Dodge Right. -->
+                <value>^\[([^\]]+)\] You start using (.+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>AttackStarted</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $attackername = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1003</id>
+            <name>You finish attack</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:06:11] You successfully used Dodge Right. -->
+                <value>^\[([^\]]+)\] You successfully used (.+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>AttackFinished</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $attackername = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1004</id>
+            <name>You gained XP</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:06:13] You gained 88 XP. -->
+                <value>^\[([^\]]+)\] You gained (\d+) XP\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>experienceGained</name>
+                    <type>integer</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>ExperienceGained</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $attackername = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1005</id>
+            <name>Character died</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:06:13] Alerted Zombie died. -->
+                <value>^\[([^\]]+)\] (.+) died\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Death</value>
+                    <type>string</type>
+                </field>
+            </set>
+        </pattern>
+        <pattern>
+            <id>1006</id>
+            <name>You afflict target</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:06:13] You afflict Alerted Zombie with Domino Effect -->
+                <value>^\[([^\]]+)\] You afflict (.+?) with (.+)</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetBuff</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $attackername = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1007</id>
+            <name>Buff terminated on target</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:06:13] Buff Domino Effect terminated on Alerted Zombie. -->
+                <value>^\[([^\]]+)\] Buff (.+?) terminated on (.+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>UnsetBuff</value>
+                    <type>string</type>
+                </field>
+            </set>
+        </pattern>
+        <pattern>
+            <id>1008</id>
+            <name>You gain buff</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:08:02] You gain buff Minor Hit Chance -->
+                <value>^\[([^\]]+)\] You gain buff (.+)</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetBuff</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $attackername = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1009</id>
+            <name>You lose buff</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:08:02] Buff Fluid Defence terminated. -->
+                <value>^\[([^\]]+)\] Buff (.+) terminated\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>UnsetBuff</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $attackername = $PlayerName;
+                $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1010</id>
+            <name>Character starts attack</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:26:55] Paen-Sano starts using Pump Action. -->
+                <value>^\[([^\]]+)\] (.+?) starts using (.+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>AttackStarted</value>
+                    <type>string</type>
+                </field>
+            </set>
+        </pattern>
+        <pattern>
+            <id>1011</id>
+            <name>Character finishes attack</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:26:55] Paen-Sano successfully used the Pump Action. -->
+                <value>^\[([^\]]+)\] (.+?) successfully used the (.+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>AttackFinished</value>
+                    <type>string</type>
+                </field>
+            </set>
+        </pattern>
+        <pattern>
+            <id>1012</id>
+            <name>Character heals</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:26:58] Paen-Sano's Coup de Grace heals Paen-Sano for 31. -->
+                <value>^\[([^\]]+)\] (?:\((Critical)\) )?(.+?)'s (.+?) heals (.+?) for (\d+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>CritHit</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>CharacterHealed</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>3</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($victimname == "you") $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1013</id>
+            <name>Character afflicts target</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [21:26:58] Paen-Sano afflicts Fresh Zombie with Mind over Matter -->
+                <value>^\[([^\]]+)\] (.+?) afflicts (.+?) with (.+)</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetBuff</value>
+                    <type>string</type>
+                </field>
+            </set>
+        </pattern>
+        <pattern>
+            <id>1014</id>
+            <name>Character evades</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [22:24:47] Fresh Zombie evaded BoxcarTony's Boiling Blood. -->
+                <!-- [18:04:26] Phelia92 evaded Metamorphosing Orochi Agent's attack. -->
+                <value>^\[([^\]]+)\] (.+?|You) evade(?:s|d?) (.+?)'s (.+?)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Swing</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $evade = TRUE;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1015</id>
+            <name>AEGIS combat swing</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [14:16:12] Your Bloodline dealt 28 damage to Infected Deep One's Demonic AEGIS. -->
+                <value>^\[([^\]]+)\] (?!Thor's Hammer|Nightmare's Edge|Miner's Claw|Gaia's Presence|Carter's Burning|Angel's Touch|Adam's Rib|Dream's End|Stone's Throw|Mjolnir's Echo|Shadow's Shadow|The Carver's Art|Dragon's Breath|The Inspector's Gadget|Protector's Wrath|Keziah Mason's Ring)(.+?'s|Your) (.+?) dealt (\d+) damage to (your|.+'s) (Demonic|Cybernetic|Psychic) AEGIS\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>aegistype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>AegisSwing</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>1</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $aegis = true;
+                if ($attackername == "Your") $attackername = $PlayerName;
+                if ($victimname == "you") $victimname = $PlayerName;
+                if ($attackername =~ /(.*)'s/) $attackername = $1;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1016</id>
+            <name>Character grants buff</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [20:46:05] Vorshai affects you with Blood Shield -->
+                <value>^\[([^\]]+)\] (.+?) affects (.+?) with (.+)</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetBuff</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $encid = get_var("encounterid");
+                if ($victimname =~ /you/) $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1017</id>
+            <name>Character gets buff</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [20:46:03] LknG uses Immortal Spirit -->
+                <value>^\[([^\]]+)\] (.+?) uses (.+)</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetBuff</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $encid = get_var("encounterid");
+                if ($attackername =~ /you/) $attackername = $PlayerName;
+                $victimname = $attackername;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1018</id>
+            <name>Character increases barrier</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [20:46:05] (Critical) Vorshai increased your Barrier (Blood Shield) to strength 358. -->
+                <value>^\[([^\]]+)\] ((?:\(Critical\) )?)(.+?) increased (your|.+?)(?:'s)? Barrier \((.+?)\) to strength (\d+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>CritHit</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>BarrierIncreased</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>3</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $encid = get_var("encounterid");
+                if ($attackername =~ /you/) $attackername = $PlayerName;
+                if ($victimname =~ /your/) $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1019</id>
+            <name>Barrier Depleted</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [20:46:08] Your Barrier depleted. -->
+                <value>^\[([^\]]+)\] Your Barrier depleted\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>BarrierDepleted</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                drop();
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1020</id>
+            <name>Barrier Removed</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [20:46:08] You removed your Barrier (Blood Shield). -->
+                <value>^\[([^\]]+)\] You removed your Barrier (.+?)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>BarrierRemoved</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $attackername = $PlayerName;
+                $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1021</id>
+            <name>combat swing no attacker</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [10:55:56] Hellish Exposure hits (Normal) NerdZombie for 125 physical damage. (Normal) -->
+                <value>^\[([^\]]+)\] ((?:\(Critical\) |\(Normal\) )?)(Thor's Hammer|Nightmare's Edge|Miner's Claw|Gaia's Presence|Carter's Burning|Angel's Touch|Adam's Rib|Dream's End|Stone's Throw|Mjolnir's Echo|Shadow's Shadow|The Carver's Art|Dragon's Breath|The Inspector's Gadget|Protector's Wrath|Keziah Mason's Ring|Shoot 'Em Up|[^']+?) hits \((Normal|Glancing)\) (.*?) for (\d+) (physical|magical|filth) damage\. \((Normal|Penetrated|Blocked)\)</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>CriticalHit</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>Glancing</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damagetype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>BlockOrPen</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Swing</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>1</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($victimname == "you") $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1022</id>
+            <name>Character sets leech</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [10:55:56] Slavina added Leech (Thirst) with strength 12% to Slavina. -->
+                <value>^\[([^\]]+)\] ((?:Critical )?)(.+?) added Leech \((.+?)\) with strength (\d+)% to (you|.+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>CritHit</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>percentleech</name>
+                    <type>integer</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetLeech</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($attackername =~ /You/) $attackername = $PlayerName;
+                if ($victimname =~ /you/) $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1023</id>
+            <name>Leech removed</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [10:56:02] Slavina's Leech (Thirst) on Slavina has been removed. -->
+                <value>^\[([^\]]+)\] (Your|.+?'s) Leech \((.+?)\) on (you|.+) has been removed\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>UnsetLeech</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($attackername =~ /Your/) $attackername = $PlayerName;
+                if ($victimname =~ /you/) $victimname = $PlayerName;
+                if ($attackername =~ /(.*)'s/) $attackername = $1;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1024</id>
+            <name>Just a date</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- {"EventReceivedTime":"2017-02-14 11:09:01","SourceModuleName":"vg_tsw_combat","SourceModuleType":"im_file","Message":"[11:09:00]"} -->
+                <value>^\[([^\]]+)\]$</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Empty</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                drop();
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1025</id>
+            <name>Character absorbs</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [11:08:59] Infernal Mantle absorbs 247 damage of your . -->
+                <!-- [11:08:59] Infernal Mantle absorbs 918 damage of your Chaotic Pull. -->
+                <value>^\[([^\]]+)\] (.+?) absorbs (\d+) damage of (your|.+) (.*?)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>barrierbuff</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>percentleech</name>
+                    <type>integer</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetLeech</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($attackername =~ /You/) $attackername = $PlayerName;
+                if ($victimname =~ /you/) $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1026</id>
+            <name>Character's Barrier Depleted</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [11:16:20] Barrier on Davyna depleted. -->
+                <value>^\[([^\]]+)\] Barrier on (.*?) depleted\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>BarrierDepleted</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                drop();
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1027</id>
+            <name>Character's Barrier Removed</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [11:16:20] Davyna's Barrier (Cold Blooded) on Davyna has been removed. -->
+                <value>^\[([^\]]+)\] (.*)'s Barrier (.+?) on (.*) has been removed\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>BarrierRemoved</value>
+                    <type>string</type>
+                </field>
+            </set>
+        </pattern>
+        <pattern>
+            <id>1028</id>
+            <name>You heal</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [18:05:00] Your Blade Torrent heals you for 21. -->
+                <value>^\[([^\]]+)\] (?:\((Critical)\) )?Your (.+?) heals (.+?) for (\d+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>CritHit</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>CharacterHealed</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>3</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                $encid = get_var("encounterid");
+                $attackername = $PlayerName;
+                if ($victimname == "you") $victimname = $PlayerName;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1029</id>
+            <name>combat swing no modifiers</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [00:00:28] Your Electrified hits you for 258. -->
+                <value>^\[([^\]]+)\] (?!Thor's Hammer|Nightmare's Edge|Miner's Claw|Gaia's Presence|Carter's Burning|Angel's Touch|Adam's Rib|Dream's End|Stone's Throw|Mjolnir's Echo|Shadow's Shadow|The Carver's Art|Dragon's Breath|The Inspector's Gadget|Protector's Wrath|Keziah Mason's Ring)(.+?'s|Your) (.+?) hits (.*?) for (\d+)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Swing</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>1</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($attackername == "Your") $attackername = $PlayerName;
+                if ($victimname == "you") $victimname = $PlayerName;
+                if ($attackername =~ /(.*)'s/) $attackername = $1;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1030</id>
+            <name>redirect swing</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!--[23:18:31] El-Neef's Ensorcelled Rebar redirects 95 damage to Samsu Nasiru.-->
+                <value>^\[([^\]]+)\] (?!Thor's Hammer|Nightmare's Edge|Miner's Claw|Gaia's Presence|Carter's Burning|Angel's Touch|Adam's Rib|Dream's End|Stone's Throw|Mjolnir's Echo|Shadow's Shadow|The Carver's Art|Dragon's Breath|The Inspector's Gadget|Protector's Wrath|Keziah Mason's Ring)(.+?'s|Your) (.+?) redirects (\d+) damage to (.*?)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>damage</name>
+                    <type>integer</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Redirect</value>
+                    <type>string</type>
+                </field>
+                <field>
+                    <name>swingtype</name>
+                    <value>1</value>
+                    <type>integer</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($attackername == "Your") $attackername = $PlayerName;
+                if ($victimname == "you") $victimname = $PlayerName;
+                if ($attackername =~ /(.*)'s/) $attackername = $1;
+            </exec>
+        </pattern>
+        <pattern>
+            <id>1031</id>
+            <name>Spell resisted</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [23:57:53] Effigy X66-0 Infected resisted your spell (Domino Effect). -->
+                <!-- [23:57:53] Effigy X66-0 Infected resisted your spell (Debilitated). -->
+                <value>^\[([^\]]+)\] (You|.+) resisted (your|.+?'s) spell \((.+?)\)\.</value>
+                <capturedfield>
+                    <name>ParsedTime</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>victimname</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attackername</name>
+                    <type>string</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>attacktype</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>ResistSpell</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                $PlayerName = get_var("playerName");
+                if ($attackername =~ /your/) $attackername = $PlayerName;
+                if ($victimname =~ /You/) $victimname = $PlayerName;
+                if ($attackername =~ /(.*)'s/) $attackername = $1;
+                $evade = TRUE;
+            </exec>
+        </pattern>
+    </group>
+
+    <group>
+        <name>tswClient</name>
+        <id>50284625</id>
+        <matchfield>
+            <name>SourceModuleName</name>
+            <type>exact</type>
+            <value>vg_tsw_client</value>
+        </matchfield>
+
+        <pattern>
+            <id>2000</id>
+            <name>tswact load plugin</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [2017-02-10 05:47:07Z #3886] [ID:0] ERROR: Scaleform.TSWACT - TSWACT Loaded for |Sheriban| -->
+                <value>^\[([0-9-: ]+Z) #\d+\] \[ID:\d+\] ERROR: Scaleform.TSWACT - TSWACT Loaded for \|(\w+)\|</value>
+                <capturedfield>
+                    <name>etime</name>
+                    <type>datetime</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>PlayerName</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>TswactLoaded</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                set_var("playerName", $PlayerName);
+            </exec>
+        </pattern>
+
+        <pattern>
+            <id>2001</id>
+            <name>tswact load playfield</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [2017-02-10 05:47:07Z #3886] [ID:0] ERROR: Scaleform.TSWACT - Playfield - |Kingsmouth Town| -->
+                <value>^\[([0-9-: ]+Z) #\d+\] \[ID:\d+\] ERROR: Scaleform.TSWACT - Playfield - \|([^|]+)\|</value>
+                <capturedfield>
+                    <name>etime</name>
+                    <type>datetime</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>ZoneName</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>SetZoneName</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                set_var("zoneName", $ZoneName);
+            </exec>
+        </pattern>
+
+        <pattern>
+            <id>2002</id>
+            <name>tswact enter combat</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [2017-02-10 05:00:22Z #10910] [ID:0] ERROR: Scaleform.TSWACT - Enter combat - |Sheriban|Buffs:Sprinting VI:Elemental Force:Third Degree :World Domination| -->
+                <value>^\[([0-9-: ]+Z) #\d+\] \[ID:\d+\] ERROR: Scaleform.TSWACT - Enter combat - \|([^|]+)\|</value>
+                <capturedfield>
+                    <name>etime</name>
+                    <type>datetime</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>PlayerName</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>Encounter</value>
+                    <type>string</type>
+                </field>
+            </set>
+            <exec>
+                set_var("playerName", $PlayerName);
+            </exec>
+        </pattern>
+
+        <pattern>
+            <id>2003</id>
+            <name>tswact exit combat</name>
+
+            <matchfield>
+                <name>raw_event</name>
+                <type>regexp</type>
+                <!-- [2017-02-10 17:14:55Z #72807] [ID:0] ERROR: Scaleform.TSWACT - Out of combat - |Sheriban|Alkk|Freir|IsTooHot|Sadalvia| -->
+                <value>^\[([0-9-: ]+Z) #\d+\] \[ID:\d+\] ERROR: Scaleform.TSWACT - Out of combat - \|(.+)\|</value>
+                <capturedfield>
+                    <name>etime</name>
+                    <type>datetime</type>
+                </capturedfield>
+                <capturedfield>
+                    <name>AllyNames</name>
+                    <type>string</type>
+                </capturedfield>
+            </matchfield>
+
+            <set>
+                <field>
+                    <name>type</name>
+                    <value>ExitCombat</value>
+                    <type>string</type>
+                </field>
+            </set>
+        </pattern>
+    </group>
+
+</patterndb>
